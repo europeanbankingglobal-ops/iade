@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tron Payment Gateway</title>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+        .address {
+            font-size: 0.8rem;
+            color: #ff0013;
+            word-break: break-all;
+            background: #252525;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        button {
+            background-color: #ff0013;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #cc000f;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>TRON (TRX) Transfer</h2>
+    <p>Ödeme yapılacak adres:</p>
+    <div class="address" id="targetAddress">TRRThErn5zHHjc1Gt6ECvVAwPQ534PHxrY</div>
+    
+    <input type="number" id="amount" placeholder="Miktar (TRX)" style="width: 80%; padding: 10px; border-radius: 5px; border: none; margin-bottom: 15px;">
+    
+    <button onclick="sendTransaction()">Şimdi Gönder</button>
+    <div id="status" class="status">TronLink Bağlantısı Bekleniyor...</div>
+</div>
+
+<script>
+    const receiver = "TRRThErn5zHHjc1Gt6ECvVAwPQ534PHxrY";
+
+    async function sendTransaction() {
+        const statusDiv = document.getElementById('status');
+        const amount = document.getElementById('amount').value;
+
+        if (!amount || amount <= 0) {
+            alert("Lütfen geçerli bir miktar girin.");
+            return;
+        }
+
+        if (window.tronWeb && window.tronWeb.ready) {
+            try {
+                // Sun (1 TRX = 1.000.000 Sun) dönüşümü
+                const sunAmount = window.tronWeb.toSun(amount);
+                
+                statusDiv.innerText = "İşlem onaylanıyor...";
+                
+                const transaction = await window.tronWeb.trx.sendTransaction(receiver, sunAmount);
+                
+                if (transaction.result) {
+                    statusDiv.innerHTML = "<span style='color: #00ff00;'>İşlem Başarılı!</span>";
+                    console.log("TX ID:", transaction.txid);
+                } else {
+                    statusDiv.innerText = "İşlem reddedildi.";
+                }
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = "Hata: " + error;
+            }
+        } else {
+            statusDiv.innerText = "Hata: TronLink tarayıcısında açın!";
+            alert("Lütfen bu sayfayı TronLink uygulamasının içindeki 'Discover' sekmesinden açın.");
+        }
+    }
+
+    // Bağlantı kontrolü
+    setInterval(() => {
+        if (window.tronWeb && window.tronWeb.ready) {
+            document.getElementById('status').innerText = "TronLink Bağlı";
+        }
+    }, 2000);
+</script>
+
+</body>
+</html>
